@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>天天开心</title>
+    <style>
+        :root{ --glow-r1:10px; --glow-r2:22px; }
+        html,body{
+            height:100%;margin:0;overflow:hidden;
+            font-family:"微软雅黑",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+            transition:background 1s;
+            /* 星空夜晚温柔背景 */
+            background:
+                radial-gradient(circle at 50% 30%, #2c1055, #000000 80%),
+                linear-gradient(180deg, #0f2027, #203a43, #2c5364);
+            color:#fff;
+        }
+        body.dark{
+            background:
+                radial-gradient(circle at 50% 20%, #1b1b2f, #000 70%),
+                linear-gradient(180deg, #0f0c29, #302b63, #24243e);
+            color:#eee;
+        }
+        body.dark.eco{ --glow-r1:6px; --glow-r2:14px; }
+
+        .stage{position:relative;width:100%;height:100%;}
+
+        .msg{
+            position:absolute;left:50%;top:50%;
+            padding:10px 16px;border-radius:16px;
+            color:#fff;font-weight:700;
+            font-size:clamp(14px,3vmin,22px);
+            text-shadow:0 2px 8px rgba(0,0,0,.28);
+            opacity:0;
+            transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot));
+            animation: flight var(--dur) cubic-bezier(.25,.7,.3,1) var(--delay) both;
+            box-shadow:0 8px 26px rgba(0,0,0,.22);
+            will-change: transform, opacity;
+            background: var(--bg);
+        }
+        body.dark .msg{
+            box-shadow:none;
+            filter: drop-shadow(0 0 var(--glow-r1) var(--glow1, rgba(0,0,0,0)))
+                    drop-shadow(0 0 var(--glow-r2) var(--glow2, rgba(0,0,0,0)));
+        }
+
+        @keyframes flight{
+            0%{
+                opacity:0;
+                transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot));
+            }
+            18%{ opacity:1; }
+            45%{
+                transform:translate(-50%,-50%) translate(calc(var(--dx)*.2),calc(var(--dy)*.2)) scale(1.06);
+            }
+            70%{
+                transform:translate(-50%,-50%) translate(calc(var(--dx)*1.15),calc(var(--dy)*1.15)) scale(.95) rotate(var(--rot));
+            }
+            88%{
+                transform:translate(-50%,-50%) translate(calc(var(--heart-x)*.6),calc(var(--heart-y)*.6)) scale(.9) rotate(var(--heart-rot));
+            }
+            100%{
+                opacity:1;
+                transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot));
+            }
+        }
+
+        .msg::before,.msg::after{
+            content:''; position:absolute; left:50%; top:0;
+            background:inherit;
+            border-radius:50px 50px 0 0;
+            width:22px; height:34px; opacity:0;
+            transition:opacity .28s ease;
+            transform-origin:0 100%; transform:rotate(-45deg); z-index:0;
+        }
+        .msg::after{
+            left:0; transform-origin:100% 100%; transform:rotate(45deg);
+        }
+        .msg.heart-mode{ color:#fff; }
+        .msg .text{ position:relative; z-index:1; }
+        .msg.heart-mode::before,.msg.heart-mode::after{ opacity:1; }
+
+        .msg.locked{
+            animation:none;
+            transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot));
+            opacity:1;
+        }
+        .msg.locked.pulse{ animation:pulse 2.2s ease-in-out 1; }
+        .msg.locked::before,.msg.locked::after{ display:none; }
+        body.dark .msg.locked{ filter:none; }
+        .msg.locked .text{ text-shadow:0 1px 2px rgba(0,0,0,.12); }
+
+        @keyframes pulse{
+            0%,100%{ transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1); }
+            50%   { transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1.08); }
+        }
+
+        .msg.burst{ animation: burst 1.4s cubic-bezier(.17,.6,.2,1) forwards; }
+        @keyframes burst{
+            0%{ opacity:1; transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1); filter:blur(0); }
+            70%{ opacity:.9; transform:translate(-50%,-50%) translate(calc(var(--heart-x) + var(--bx)*0.7), calc(var(--heart-y) + var(--by)*0.7)) scale(.9) rotate(var(--rot)); filter:blur(.3px); }
+            100%{ opacity:0; transform:translate(-50%,-50%) translate(calc(var(--heart-x) + var(--bx)), calc(var(--heart-y) + var(--by))) scale(.7) rotate(var(--rot)); filter:blur(1px); }
+        }
+
+        .center-title{
+            position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+            font-weight:800; letter-spacing:.12em;
+            font-size:clamp(18px,4vmin,28px);
+            color:rgba(255,105,180,.7); text-shadow:0 2px 10px rgba(255,105,180,.18);
+            opacity:.0; pointer-events:none;
+            animation:titleIn 1.2s ease 0.8s both;
+        }
+        body.dark .center-title{ color:rgba(255,160,200,.9); text-shadow:0 0 18px rgba(255,130,200,.35); }
+        @keyframes titleIn{ from{opacity:0; transform:translate(-50%,-55%);} to{opacity:.95; transform:translate(-50%,-50%);} }
+
+        .controls{ position:absolute; right:18px; bottom:18px; display:flex; gap:12px; align-items:center; }
+        .btn{
+            padding:10px 14px; border:none; border-radius:10px;
+            background:rgba(255,255,255,.5); backdrop-filter:blur(8px);
+            color:#222; font-weight:600; cursor:pointer;
+            box-shadow:0 5px 20px rgba(0,0,0,.22);
+        }
+        body.dark .btn{ background:rgba(255,255,255,.15); color:#fff; }
+
+        /* 星空粒子（浪漫梦幻版） */
+        .snow{
+            position:fixed; top:-10px; color:white;
+            user-select:none; pointer-events:none;
+            z-index:99; text-shadow:0 0 8px rgba(255,255,255,.8);
+            animation: starFall linear forwards;
+        }
+        @keyframes starFall{
+            0%{ transform:translateY(0) rotate(0deg); opacity:1; }
+            100%{ transform:translateY(120vh) rotate(360deg); opacity:0; }
+        }
+
+        /* 流星效果 */
+        .meteor{
+            position:fixed; top:0; left:0;
+            width:2px; height:80px;
+            background: linear-gradient(45deg, rgba(255,255,255,1), rgba(255,255,255,0));
+            opacity:0;
+            pointer-events:none;
+            z-index:100;
+        }
+        @keyframes meteorMove{
+            0%{ transform: translate(var(--start-x),var(--start-y)) rotate(var(--rot)); opacity:1; }
+            100%{ transform: translate(var(--end-x),var(--end-y)) rotate(var(--rot)); opacity:0; }
+        }
+
+        #bgMusic { display: none; }
+    </style>
+</head>
+<body>
+    <div class="stage" id="stage">
+        <div class="center-title" id="title">天天开心</div>
+    </div>
+    <div class="controls">
+        <button class="btn" id="replay">重放 / 切换背景</button>
+    </div>
+    
+    <audio id="bgMusic" loop autoplay>
+        <source src="https://ew-sycdn.kuwo.cn/09749de1cc5f5f02bfc59c383bf4cec1/69283031/resource/n1/66/65/2114873274.mp3" type="audio/mpeg">
+        <source src="https://ew-sycdn.kuwo.cn/09749de1cc5f5f02bfc59c383bf4cec1/69283031/resource/n1/66/65/2114873274.mp3" type="audio/ogg">
+    </audio>
+
+<script>
+const tips=[
+    '多喝水哦~','保持微笑呀','每天都要元气满满','记得吃水果','保持好心情','好好爱自己',
+    '我想你了','梦想成真','期待下一次见面','金榜题名','顺顺利利','早点休息',
+    '愿所有烦恼都消失','别熬夜','今天过得开心嘛','天冷了，多穿衣服',
+    '好好生活，慢慢相遇','以终为始，始终如一'
+];
+
+const stage  = document.getElementById('stage');
+const replay = document.getElementById('replay');
+const title  = document.getElementById('title');
+const bgMusic = document.getElementById('bgMusic');
+let dark = false;
+let eco = false;
+let snowRunning = false;
+let snowFrame;
+let lastSnowTime = 0;
+let snowIntervalMs = 400; // 粒子生成间隔
+let snowMax = 200;        // 最大星星数量
+let totalCurrent = 0;
+let lockedCount = 0;
+
+const directions = [
+    {dx:'0vw',dy:'-80vh'},{dx:'0vw',dy:'80vh'},
+    {dx:'-80vw',dy:'0vh'},{dx:'80vw',dy:'0vh'},
+    {dx:'-70vw',dy:'-70vh'},{dx:'70vw',dy:'-70vh'},
+    {dx:'-70vw',dy:'70vh'},{dx:'70vw',dy:'70vh'},
+    {dx:'0vw',dy:'-60vh'},{dx:'0vw',dy:'60vh'},
+    {dx:'-60vw',dy:'0vh'},{dx:'60vw',dy:'0vh'}
+];
+
+function rand(min,max){return Math.random()*(max-min)+min;}
+function hexToRgba(hex,alpha=1){
+    const h=hex.replace('#','');
+    const short=h.length===3;
+    const r=parseInt(short? h[0]+h[0] : h.slice(0,2),16);
+    const g=parseInt(short? h[1]+h[1] : h.slice(2,4),16);
+    const b=parseInt(short? h[2]+h[2] : h.slice(4,6),16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+function randomStyle(){
+    const arr=[
+        ['#ff758c','#ff7eb3'], ['#a18cd1','#fbc2eb'],
+        ['#f6d365','#fda085'], ['#84fab0','#8fd3f4'],
+        ['#f093fb','#f5576c'], ['#4facfe','#00f2fe'],
+        ['#43e97b','#38f9d7'], ['#fa709a','#fee140'],
+        ['#30cfd0','#330867'], ['#5ee7df','#b490ca']
+    ];
+    const [c1,c2]=arr[Math.floor(Math.random()*arr.length)];
+    return { bg:`linear-gradient(135deg,${c1},${c2})`, glow1:hexToRgba(c1,0.55), glow2:hexToRgba(c2,0.35) };
+}
+function heartScale(){const minDim=Math.min(window.innerWidth,window.innerHeight);let s=Math.round(minDim*0.023);s=Math.max(8,Math.min(22,s));if(dark&&eco)s=Math.max(8,Math.floor(s*0.92));return s;}
+function centerYOffset(){const portrait=window.innerHeight>window.innerWidth;const minDim=Math.min(window.innerWidth,window.innerHeight);return portrait?-minDim*0.06:0;}
+function heartXY(t){const s=heartScale();const x=s*(16*Math.sin(t)**3);const y=-s*(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));return{x:x+'px',y:(y+centerYOffset())+'px'};}
+function createMsg(i,total){const el=document.createElement('div');el.className='msg';const d=directions[Math.floor(Math.random()*directions.length)];el.style.setProperty('--dx',d.dx);el.style.setProperty('--dy',d.dy);el.style.setProperty('--rot',rand(-55,55)+'deg');const baseDur=dark&&eco?rand(6.2,7.6):rand(6.8,8.6);el.style.setProperty('--dur',baseDur+'s');el.style.setProperty('--delay',(i*0.11+rand(0,0.35))+'s');const sty=randomStyle();el.style.setProperty('--bg',sty.bg);el.style.setProperty('--glow1',sty.glow1);el.style.setProperty('--glow2',sty.glow2);const t=(i/total)*Math.PI*2;const {x,y}=heartXY(t);el.style.setProperty('--heart-x',x);el.style.setProperty('--heart-y',y);el.style.setProperty('--heart-rot',rand(-18,18)+'deg');const span=document.createElement('span');span.className='text';span.textContent=tips[Math.floor(Math.random()*tips.length)];el.appendChild(span);const delay=parseFloat(el.style.getPropertyValue('--delay'));const dur=parseFloat(el.style.getPropertyValue('--dur'));const switchAt=delay+dur*0.86;const switchTimer=setTimeout(()=>{el.classList.add('heart-mode');},switchAt*1000);el.addEventListener('animationend',()=>{clearTimeout(switchTimer);el.classList.add('heart-mode','locked','pulse');el.style.willChange='auto';const spread=rand(140,260);const ang=rand(0,Math.PI*2);const bx=Math.cos(ang)*spread;const by=Math.sin(ang)*spread;el.style.setProperty('--bx',bx+'px');el.style.setProperty('--by',by+'px');lockedCount++;if(lockedCount===totalCurrent)onAllLocked();},{once:true});stage.appendChild(el);}
+
+function finalBurst(){stage.querySelectorAll('.msg.locked').forEach(el=>{el.classList.remove('pulse');const jitter=rand(0,200);setTimeout(()=>el.classList.add('burst'),jitter);el.addEventListener('animationend',()=>el.remove(),{once:true});});title.style.opacity=0;}
+function play(){stage.querySelectorAll('.msg').forEach(n=>n.remove());title.style.opacity=0;const minDim=Math.min(window.innerWidth,window.innerHeight);let TOTAL;if(minDim<=420){TOTAL=dark?(eco?80:110):150;}else if(minDim<=720){TOTAL=dark?(eco?96:130):180;}else{TOTAL=dark?(eco?96:140):200;}totalCurrent=TOTAL;lockedCount=0;for(let i=0;i<TOTAL;i++)createMsg(i,TOTAL);setTimeout(()=>{title.style.opacity=1;},1400);playMusic();startSnow();}
+
+function playMusic(){bgMusic.currentTime=0;bgMusic.play().catch(error=>{console.log('音乐播放需要用户交互:',error);});}
+
+function createSnow(){const star=document.createElement('div');star.className='snow';star.textContent='✦';star.style.left=(Math.random()*100)+'vw';star.style.fontSize=(Math.random()*10+6)+'px';star.style.opacity=(Math.random()*0.7+0.3);const duration=(Math.random()*6+8);star.style.animationDuration=duration+'s';document.body.appendChild(star);setTimeout(()=>star.remove(),duration*1000);}
+function loopSnow(ts){if(!lastSnowTime)lastSnowTime=ts;const delta=ts-lastSnowTime;if(delta>snowIntervalMs){if(snowRunning){const count=document.querySelectorAll('.snow').length;if(count<snowMax)createSnow();}lastSnowTime=ts;}snowFrame=requestAnimationFrame(loopSnow);}
+function startSnow(){snowRunning=true;lastSnowTime=0;loopSnow();}
+function stopSnow(){snowRunning=false;cancelAnimationFrame(snowFrame);document.querySelectorAll('.snow').forEach(s=>s.remove());}
+
+function decideEco(){const cores=navigator.hardwareConcurrency||4;const mem=navigator.deviceMemory||4;const area=window.innerWidth*window.innerHeight;return(cores<=4)||(mem<=4)||(area>=2400*1440);}
+function applyMode(){document.body.classList.toggle('dark',dark);if(dark){eco=decideEco();document.body.classList.toggle('eco',eco);snowIntervalMs=eco?600:400;snowMax=eco?160:220;startSnow();}else{stopSnow();document.body.classList.remove('eco');}}
+function onAllLocked(){if(dark){snowIntervalMs=eco?500:300;snowMax=eco?180:240;}setTimeout(()=>{finalBurst();},2000);}
+
+// 流星效果
+function createMeteor(){
+    const meteor=document.createElement('div');
+    meteor.className='meteor';
+    const startX=Math.random()*window.innerWidth*0.8;
+    const startY=Math.random()*window.innerHeight*0.2;
+    const endX=startX + rand(300,600);
+    const endY=startY + rand(200,400);
+    const rot = rand(-20,20)+'deg';
+    meteor.style.setProperty('--start-x',startX+'px');
+    meteor.style.setProperty('--start-y',startY+'px');
+    meteor.style.setProperty('--end-x',endX+'px');
+    meteor.style.setProperty('--end-y',endY+'px');
+    meteor.style.setProperty('--rot',rot);
+    meteor.style.animation = `meteorMove ${rand(0.8,1.5)}s linear forwards`;
+    document.body.appendChild(meteor);
+    setTimeout(()=>meteor.remove(),1500);
+}
+
+function meteorLoop(){
+    if(dark && Math.random()<0.02){ // 2%概率每帧产生流星
+        createMeteor();
+    }
+    requestAnimationFrame(meteorLoop);
+}
+
+// 初始播放
+play();
+meteorLoop();
+
+// 重放按钮事件
+replay.onclick=()=>{dark=!dark;applyMode();play();};
+
+// 窗口大小变化防抖重绘
+let resizeTimer;
+window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>play(),150);});
+
+// 首次点击触发音乐播放
+document.addEventListener('click',()=>{if(bgMusic.paused)playMusic();},{once:true});
+</script>
+</body>
+</html>
